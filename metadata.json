@@ -1,0 +1,8 @@
+{
+  "name": "CST Connect",
+  "description": "Modern Android app for CST students of Narsingdi Government Polytechnic Institute featuring Class Routine, Notes Library, BTEB CGPA Calculator, Batch Chat, Attendance Tracker, and AI Assistant.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
