@@ -1,7 +1,9 @@
 import express from 'express';
+import http from 'http';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 
 dotenv.config();
 
@@ -13,6 +15,28 @@ app.use(express.json({ limit: '10mb' }));
 // Health check endpoint for Cloud Run and monitoring
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
+});
+
+// Direct APK Download Endpoint for CST Connect Android App
+app.get(['/api/download/CST-Connect.apk', '/CST-Connect.apk', '/api/download/cst_connect.apk', '/cst_connect.apk'], (req, res) => {
+  const candidatePaths = [
+    path.join(process.cwd(), 'public', 'CST-Connect.apk'),
+    path.join(process.cwd(), 'dist', 'CST-Connect.apk'),
+    path.join(process.cwd(), 'CST-Connect.apk'),
+    path.join(process.cwd(), 'public', 'cst_connect.apk'),
+    path.join(process.cwd(), 'dist', 'cst_connect.apk'),
+    path.join(process.cwd(), 'android', 'app', 'build', 'outputs', 'apk', 'release', 'app-release.apk'),
+    path.join(process.cwd(), 'android', 'app', 'build', 'outputs', 'apk', 'release', 'app-release-unsigned.apk'),
+    path.join(process.cwd(), 'android', 'app', 'build', 'outputs', 'apk', 'debug', 'app-debug.apk'),
+  ];
+  const apkPath = candidatePaths.find(p => fs.existsSync(p));
+
+  if (apkPath) {
+    res.setHeader('Content-Type', 'application/vnd.android.package-archive');
+    res.setHeader('Content-Disposition', 'attachment; filename="CST-Connect.apk"');
+    return res.sendFile(apkPath);
+  }
+  return res.status(404).json({ error: 'APK file not found' });
 });
 
 // Lazy GoogleGenAI initialization
@@ -149,10 +173,17 @@ app.post(['/api/ai/viva-practice', '/api/ai/viva'], async (req, res) => {
 
 // Vite & Static file handling
 async function startServer() {
+  const httpServer = http.createServer(app);
+
   if (process.env.NODE_ENV !== 'production') {
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: {
+        middlewareMode: true,
+        hmr: {
+          server: httpServer,
+        },
+      },
       appType: 'spa',
     });
     app.use(vite.middlewares);
@@ -164,7 +195,7 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
+  httpServer.listen(PORT, '0.0.0.0', () => {
     console.log(`CST Connect Server running on http://0.0.0.0:${PORT}`);
   });
 }

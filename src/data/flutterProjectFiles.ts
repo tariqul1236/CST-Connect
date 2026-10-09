@@ -509,10 +509,12 @@ class _RoutineScreenState extends State<RoutineScreen> {
             ],
           ),
           const SizedBox(height: 10),
-          // রুটিন কার্ড লিস্ট
-          _buildRoutineCard('০১', '০৮:০০ - ০৯:৩০', 'অপারেটিং সিস্টেম অ্যান্ড অ্যাপ্লিকেশনস', '২৮৫৮১', 'ল্যাব-৪০২ (CST Lab 1)', 'প্রকৌ. মোস্তাফিজুর রহমান', 'ব্যবহারিক'),
-          _buildRoutineCard('০২', '০৯:৩০ - ১০:১৫', 'জাভা ও অবজেক্ট ওরিয়েন্টেড প্রোগ্রামিং', '২৮৫৮২', 'রুম-৩০৪ (একাডেমিক ভবন)', 'তানজিলা তাসনিম ম্যাম', 'তত্ত্বীয়'),
-          _buildRoutineCard('০৩', '১০:৪৫ - ১২:১৫', 'ওয়েব ডেভেলপমেন্ট অ্যান্ড ফ্রেমওয়ার্ক', '২৮৫৮৩', 'ল্যাব-৪০৩ (সফটওয়্যার ল্যাব)', 'প্রকৌ. শফিকুল ইসলাম', 'ব্যবহারিক'),
+          // রুটিন কার্ড লিস্ট (৩য় সেমিস্টার ২য় শিফট - রবিবার)
+          _buildRoutineCard('১ম–২য়', '১:৩০–৩:০০', 'Digital Electronics', '26831', 'Hardware Lab', 'Md. Mahabub Hasan (MMH)', 'ব্যবহারিক ল্যাব'),
+          _buildRoutineCard('৩য়–৪র্থ', '৩:০০–৪:৩০', 'Mathematics-3', '25931', 'R-311', 'Abdul Muhit (AM)', 'তত্ত্বীয়'),
+          _buildRoutineCard('৫ম', '৪:৩০–৫:১৫', 'Application Development Using Python', '28531', 'R-311', 'Md. Mahabub Hasan (MMH)', 'তত্ত্বীয়'),
+          _buildRoutineCard('৬ষ্ঠ', '৫:১৫–৬:০০', 'Physics-2', '25922', 'R-311', 'Abdul Muhit (AM)', 'তত্ত্বীয়'),
+          _buildRoutineCard('৭ম', '৬:০০–৬:৪৫', 'Social Science', '25811', 'R-311', 'Mahmudul Hasan Siddique (MHS)', 'তত্ত্বীয়'),
         ],
       ),
     );

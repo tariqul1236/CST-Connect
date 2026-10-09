@@ -39,7 +39,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-800 shadow-[0_-4px_12px_rgba(0,0,0,0.06)] max-w-lg mx-auto">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-800 shadow-[0_-4px_12px_rgba(0,0,0,0.06)] w-full max-w-full sm:max-w-md mx-auto overflow-x-hidden">
       <div className="flex items-center justify-around px-2 py-1.5 safe-area-bottom">
         {tabs.map((tab) => {
           const Icon = tab.icon;

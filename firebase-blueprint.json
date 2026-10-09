@@ -1,0 +1,64 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile document for CST Connect students",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "studentId": { "type": "string" },
+        "email": { "type": "string" },
+        "semester": { "type": "string" },
+        "technology": { "type": "string" },
+        "shift": { "type": "string" },
+        "profileImage": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "lastSeen": { "type": "string" },
+        "online": { "type": "boolean" }
+      },
+      "required": ["uid", "name", "studentId", "email", "semester", "technology", "shift"]
+    },
+    "Chat": {
+      "title": "Chat",
+      "description": "Direct chat conversation metadata between two students",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "participants": { "type": "array" },
+        "lastMessage": { "type": "string" },
+        "lastMessageTime": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["participants"]
+    },
+    "ChatMessage": {
+      "title": "ChatMessage",
+      "description": "Individual chat message in a conversation",
+      "type": "object",
+      "properties": {
+        "chatId": { "type": "string" },
+        "senderId": { "type": "string" },
+        "receiverId": { "type": "string" },
+        "message": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "seen": { "type": "boolean" }
+      },
+      "required": ["chatId", "senderId", "receiverId", "message", "seen"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "User",
+      "description": "Student profiles indexed by Firebase Auth UID"
+    },
+    "/chats/{chatId}": {
+      "schema": "Chat",
+      "description": "Direct 1-on-1 chat metadata"
+    },
+    "/chats/{chatId}/messages/{messageId}": {
+      "schema": "ChatMessage",
+      "description": "Messages inside a chat thread"
+    }
+  }
+}

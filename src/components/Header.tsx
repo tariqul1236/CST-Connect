@@ -1,12 +1,9 @@
 import React from 'react';
 import { 
   Bell, 
-  Sparkles, 
   Moon, 
   Sun, 
-  Code2, 
   Settings as SettingsIcon,
-  Wifi,
   Smartphone
 } from 'lucide-react';
 import { StudentProfile } from '../types';
@@ -15,9 +12,9 @@ interface HeaderProps {
   student: StudentProfile;
   darkMode: boolean;
   onToggleDarkMode: () => void;
-  onOpenAI: () => void;
+  onOpenAI?: () => void;
   onOpenSettings: () => void;
-  onOpenFlutterCode: () => void;
+  onOpenFlutterCode?: () => void;
   onOpenNotices: () => void;
   unreadNoticesCount: number;
 }
@@ -25,9 +22,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   darkMode,
   onToggleDarkMode,
-  onOpenAI,
   onOpenSettings,
-  onOpenFlutterCode,
   onOpenNotices,
   unreadNoticesCount,
 }) => {
@@ -56,26 +51,6 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* ডানপাশের বাটনসমূহ */}
         <div className="flex items-center space-x-1 sm:space-x-2">
-          {/* Flutter কোড এক্সপ্লোরার */}
-          <button
-            onClick={onOpenFlutterCode}
-            title="Flutter সোর্স কোড ও ফায়ারবেস"
-            className="p-2 rounded-full hover:bg-emerald-700/60 active:bg-emerald-700 transition text-emerald-100 flex items-center gap-1 text-xs"
-          >
-            <Code2 size={19} />
-            <span className="hidden md:inline font-medium">Flutter কোড</span>
-          </button>
-
-          {/* AI সহকারী বাটন */}
-          <button
-            onClick={onOpenAI}
-            title="AI সহকারী (Gemini AI)"
-            className="p-2 rounded-full bg-emerald-700/80 hover:bg-emerald-600 active:scale-95 text-amber-300 transition flex items-center gap-1"
-          >
-            <Sparkles size={18} className="animate-pulse" />
-            <span className="text-xs font-semibold hidden sm:inline text-white">AI শিক্ষক</span>
-          </button>
-
           {/* নোটিফিকেশন বেল */}
           <button
             onClick={onOpenNotices}

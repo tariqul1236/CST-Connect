@@ -10,7 +10,8 @@ import {
   Bell, 
   Sparkles,
   BookOpen,
-  Filter
+  Filter,
+  ArrowLeft
 } from 'lucide-react';
 import { Assignment } from '../types';
 
@@ -19,6 +20,7 @@ interface AssignmentsTabProps {
   onToggleStatus: (id: string) => void;
   onAddAssignment: (newAssignment: Assignment) => void;
   onSendReminder: (title: string, daysLeft: number) => void;
+  onBackToDashboard?: () => void;
 }
 
 export const AssignmentsTab: React.FC<AssignmentsTabProps> = ({
@@ -26,6 +28,7 @@ export const AssignmentsTab: React.FC<AssignmentsTabProps> = ({
   onToggleStatus,
   onAddAssignment,
   onSendReminder,
+  onBackToDashboard,
 }) => {
   const [filter, setFilter] = useState<'সব' | 'চলমান' | 'সম্পন্ন'>('সব');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -81,21 +84,32 @@ export const AssignmentsTab: React.FC<AssignmentsTabProps> = ({
   };
 
   return (
-    <div className="space-y-4 pb-24 animate-fadeIn">
+    <div className="w-full max-w-full space-y-4 pb-8 animate-fadeIn overflow-x-hidden">
+      {/* Back to Dashboard Button if navigated from Home */}
+      {onBackToDashboard && (
+        <button
+          onClick={onBackToDashboard}
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-xl hover:bg-emerald-50 dark:hover:bg-slate-750 transition-all shadow-xs"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>← ড্যাশবোর্ডে ফিরে যান</span>
+        </button>
+      )}
+
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-emerald-800 to-teal-800 rounded-2xl p-4 text-white shadow-md flex items-center justify-between">
-        <div>
-          <h2 className="text-base font-bold text-white flex items-center gap-2">
-            <CheckSquare className="w-5 h-5 text-emerald-300" />
-            অ্যাসাইনমেন্ট ট্র্যাকার
+      <div className="bg-gradient-to-r from-emerald-800 to-teal-800 rounded-2xl p-3.5 sm:p-4 text-white shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 min-w-0">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-base font-bold text-white flex items-center gap-2 truncate">
+            <CheckSquare className="w-5 h-5 text-emerald-300 shrink-0" />
+            <span>অ্যাসাইনমেন্ট ট্র্যাকার</span>
           </h2>
-          <p className="text-xs text-emerald-100/90 mt-0.5">
+          <p className="text-xs text-emerald-100/90 mt-0.5 truncate">
             সময়মতো ল্যাব রিপোর্ট ও অ্যাসাইনমেন্ট সম্পন্ন করুন
           </p>
         </div>
         <button
           onClick={() => setIsAddModalOpen(true)}
-          className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white text-emerald-800 hover:bg-emerald-50 active:scale-95 transition-all text-xs font-bold shadow-sm"
+          className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white text-emerald-800 hover:bg-emerald-50 active:scale-95 transition-all text-xs font-bold shadow-sm shrink-0"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>নতুন যোগ</span>

@@ -1,0 +1,84 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isChatParticipant(chatId) {
+      return isSignedIn() && (
+        request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants
+      );
+    }
+
+    // Test connection doc
+    match /test/connection {
+      allow read, write: if isSignedIn();
+    }
+
+    // Notices collection
+    match /notices/{noticeId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+
+    // Routines collection
+    match /routines/{routineId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+
+    // Notes collection
+    match /notes/{noteId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+
+    // Users collection
+    match /users/{userId} {
+      // Any authenticated student can read profiles to search and connect
+      allow read: if isSignedIn();
+      
+      // Only the user themselves can create or update their profile
+      allow create: if isOwner(userId) && request.resource.data.uid == userId;
+      allow update: if isOwner(userId) && request.resource.data.uid == userId;
+      allow delete: if false;
+    }
+
+    // Chats collection
+    match /chats/{chatId} {
+      // Must be a participant to read or modify the chat
+      allow read: if isSignedIn() && (request.auth.uid in resource.data.participants);
+      allow create: if isSignedIn() && (request.auth.uid in request.resource.data.participants);
+      allow update: if isSignedIn() && (request.auth.uid in resource.data.participants);
+      allow delete: if false;
+
+      // Messages subcollection
+      match /messages/{messageId} {
+        allow read: if isChatParticipant(chatId);
+        
+        // Sender must be the logged-in user
+        allow create: if isChatParticipant(chatId) 
+          && request.auth.uid == request.resource.data.senderId;
+          
+        // Receiver can update message status (e.g. mark as seen)
+        allow update: if isChatParticipant(chatId) 
+          && (request.auth.uid == resource.data.receiverId || request.auth.uid == resource.data.senderId);
+          
+        allow delete: if false;
+      }
+    }
+  }
+}

@@ -17,15 +17,21 @@ export interface StudentProfile {
 
 export interface RoutineItem {
   id: string;
-  day: 'রবিবার' | 'সোমবার' | 'মঙ্গলবার' | 'বুধবার' | 'বৃহস্পতিবার';
+  day: 'রবিবার' | 'সোমবার' | 'মঙ্গলবার' | 'বুধবার' | 'বৃহস্পতিবার' | 'শুক্রবার' | 'শনিবার';
   period: number;
+  periodSpan?: string;
+  startPeriod?: number;
+  endPeriod?: number;
   time: string;
+  startTime?: string;
+  endTime?: string;
   subjectCode: string;
   subjectName: string;
   teacherName: string;
   teacherInitial: string;
   room: string;
   isLab: boolean;
+  isFree?: boolean;
 }
 
 export interface Notice {
@@ -114,3 +120,51 @@ export interface AppSettings {
   routineAlerts: boolean;
   soundEnabled: boolean;
 }
+
+export interface AppUser {
+  uid: string;
+  name: string;
+  studentId: string;
+  email: string;
+  semester: string;
+  technology: string;
+  shift: string;
+  profileImage?: string;
+  createdAt: string;
+  lastSeen: string;
+  online: boolean;
+}
+
+export interface ChatConversation {
+  id: string;
+  participants: string[];
+  participantDetails?: {
+    [uid: string]: {
+      name: string;
+      studentId: string;
+      profileImage?: string;
+      semester?: string;
+      technology?: string;
+      shift?: string;
+      online?: boolean;
+    };
+  };
+  lastMessage: string;
+  lastMessageTime: string;
+  lastSenderId?: string;
+  unreadCounts?: {
+    [uid: string]: number;
+  };
+  updatedAt?: string;
+}
+
+export interface ChatMessageRecord {
+  id: string;
+  chatId: string;
+  senderId: string;
+  receiverId: string;
+  message: string;
+  timestamp: string;
+  seen: boolean;
+}
+

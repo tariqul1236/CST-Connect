@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>CST Connect</title>
+    <meta name="description" content="Modern Android app for CST students of Narsingdi Government Polytechnic Institute featuring Class Routine, Notes Library, BTEB CGPA Calculator, Batch Chat, Attendance Tracker, and AI Assistant." />
+    <meta property="og:title" content="CST Connect" />
+    <meta property="og:description" content="Modern Android app for CST students of Narsingdi Government Polytechnic Institute featuring Class Routine, Notes Library, BTEB CGPA Calculator, Batch Chat, Attendance Tracker, and AI Assistant." />
+    <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#065f46" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="CST Connect" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <!-- Fonts: Hind Siliguri for Bangla + Outfit for modern Material Design 3 English -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+      /* Hide visual scrollbars globally while preserving vertical touch and mouse scroll */
+      *::-webkit-scrollbar {
+        display: none !important;
+        width: 0px !important;
+        height: 0px !important;
+        background: transparent !important;
+      }
+      * {
+        -ms-overflow-style: none !important;
+        scrollbar-width: none !important;
+      }
+    </style>
+    <script>
+      // Gracefully prevent Vite HMR websocket reconnection noise in preview iframe
+      window.addEventListener('error', function(event) {
+        if (event && event.message && event.message.includes('WebSocket')) {
+          event.stopImmediatePropagation();
+        }
+      }, true);
+      window.addEventListener('unhandledrejection', function(event) {
+        if (event && event.reason && String(event.reason).includes('WebSocket')) {
+          event.stopImmediatePropagation();
+        }
+      }, true);
+    </script>
+    <script type="module" crossorigin src="/assets/index-Cj_Ug5Fp.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CFkkfF0z.css">
+  <link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
+  <body class="bg-slate-100 dark:bg-slate-950 font-['Outfit',sans-serif] antialiased text-slate-800 dark:text-slate-100 selection:bg-emerald-500 selection:text-white">
+    <div id="root"></div>
+  </body>
+</html>
+

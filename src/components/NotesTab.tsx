@@ -4,7 +4,6 @@ import {
   Search, 
   Download, 
   Upload, 
-  Sparkles, 
   FileText, 
   Eye, 
   X, 
@@ -14,20 +13,25 @@ import {
   Calendar,
   Layers,
   ArrowDownToLine,
-  Loader2
+  Loader2,
+  ArrowLeft
 } from 'lucide-react';
 import { NoteItem } from '../types';
 
 interface NotesTabProps {
   notes: NoteItem[];
   onUploadNote: (newNote: NoteItem) => void;
-  onOpenAiSummary: (title: string, content: string) => void;
+  onOpenAiSummary?: (title: string, content: string) => void;
+  currentUserName?: string;
+  onBackToDashboard?: () => void;
 }
 
 export const NotesTab: React.FC<NotesTabProps> = ({
   notes,
   onUploadNote,
   onOpenAiSummary,
+  currentUserName,
+  onBackToDashboard,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('সব');
@@ -42,6 +46,7 @@ export const NotesTab: React.FC<NotesTabProps> = ({
   const [newCategory, setNewCategory] = useState('হ্যান্ডনোট');
   const [newContent, setNewContent] = useState('');
   const [fileName, setFileName] = useState('lecture_note_cst.pdf');
+  const [fileSizeStr, setFileSizeStr] = useState('১.৫ মেগাবাইট');
 
   const categories = ['সব', 'হ্যান্ডনোট', 'পরীক্ষার সাজেশন', 'চিটশিট', 'লেকচার স্লাইড'];
 
@@ -59,19 +64,35 @@ export const NotesTab: React.FC<NotesTabProps> = ({
     setTimeout(() => setDownloadSuccessId(null), 2500);
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFileName(file.name);
+      const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+      const banglaDigits: Record<string, string> = {
+        '0': '০', '1': '১', '2': '২', '3': '৩', '4': '৪',
+        '5': '৫', '6': '৬', '7': '৭', '8': '৮', '9': '৯',
+      };
+      const banglaSize = `${sizeMb}`.replace(/[0-9]/g, (d) => banglaDigits[d] || d);
+      setFileSizeStr(`${banglaSize} মেগাবাইট`);
+    }
+  };
+
   const handleUploadSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim()) return;
 
+    const uploader = currentUserName ? `${currentUserName} (আপনি)` : 'শিক্ষার্থী (আপনি)';
+
     const item: NoteItem = {
       id: `nt-${Date.now()}`,
-      title: newTitle,
-      subjectCode: newSubjectCode,
-      subjectName: newSubjectName,
-      semester: '৫ম সেমিস্টার',
-      uploaderName: 'তানভীর আহমেদ সৈকত (আপনি)',
+      title: newTitle.trim(),
+      subjectCode: newSubjectCode.trim(),
+      subjectName: newSubjectName.trim(),
+      semester: '৩য় সেমিস্টার',
+      uploaderName: uploader,
       uploadDate: 'আজ',
-      fileSize: '২.৪ মেগাবাইট',
+      fileSize: fileSizeStr,
       fileType: 'PDF',
       downloadCount: 1,
       category: newCategory,
@@ -85,21 +106,32 @@ export const NotesTab: React.FC<NotesTabProps> = ({
   };
 
   return (
-    <div className="space-y-4 pb-24 animate-fadeIn">
+    <div className="w-full max-w-full space-y-4 pb-8 animate-fadeIn overflow-x-hidden">
+      {/* Back to Dashboard Button if navigated from Home */}
+      {onBackToDashboard && (
+        <button
+          onClick={onBackToDashboard}
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-xl hover:bg-emerald-50 dark:hover:bg-slate-750 transition-all shadow-xs"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>← ড্যাশবোর্ডে ফিরে যান</span>
+        </button>
+      )}
+
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-emerald-800 to-teal-800 rounded-2xl p-4 text-white shadow-md flex items-center justify-between">
-        <div>
-          <h2 className="text-base font-bold text-white flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-emerald-300" />
-            নোট ও PDF লাইব্রেরি
+      <div className="bg-gradient-to-r from-emerald-800 to-teal-800 rounded-2xl p-3.5 sm:p-4 text-white shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 min-w-0">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-base font-bold text-white flex items-center gap-2 truncate">
+            <BookOpen className="w-5 h-5 text-emerald-300 shrink-0" />
+            <span>নোট ও PDF লাইব্রেরি</span>
           </h2>
-          <p className="text-xs text-emerald-100/90 mt-0.5">
+          <p className="text-xs text-emerald-100/90 mt-0.5 truncate">
             CST বিভাগের সকল সেমিস্টারের লেকচার নোট ও পিডিএফ
           </p>
         </div>
         <button
           onClick={() => setIsUploadModalOpen(true)}
-          className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white text-emerald-800 hover:bg-emerald-50 active:scale-95 transition-all text-xs font-bold shadow-sm"
+          className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white text-emerald-800 hover:bg-emerald-50 active:scale-95 transition-all text-xs font-bold shadow-sm shrink-0"
         >
           <Upload className="w-3.5 h-3.5" />
           <span>নোট আপলোড</span>
@@ -207,16 +239,6 @@ export const NotesTab: React.FC<NotesTabProps> = ({
                   </button>
 
                   <div className="flex items-center space-x-2">
-                    {/* AI Summarize Action */}
-                    <button
-                      onClick={() => onOpenAiSummary(note.title, note.previewContent)}
-                      className="flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 text-xs font-semibold hover:bg-purple-100 transition-all"
-                      title="AI দিয়ে বাংলা সারসংক্ষেপ দেখুন"
-                    >
-                      <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-                      <span>AI সারসংক্ষেপ</span>
-                    </button>
-
                     {/* Download Action */}
                     <button
                       onClick={() => handleDownload(note.id, note.title)}
@@ -267,17 +289,7 @@ export const NotesTab: React.FC<NotesTabProps> = ({
               {previewNote.previewContent}
             </div>
 
-            <div className="p-3 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
-              <button
-                onClick={() => {
-                  onOpenAiSummary(previewNote.title, previewNote.previewContent);
-                  setPreviewNote(null);
-                }}
-                className="flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 text-xs font-bold"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>AI সারসংক্ষেপ দেখুন</span>
-              </button>
+            <div className="p-3 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end">
               <button
                 onClick={() => {
                   handleDownload(previewNote.id, previewNote.title);
@@ -377,8 +389,19 @@ export const NotesTab: React.FC<NotesTabProps> = ({
               </div>
 
               <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl flex items-center justify-between text-xs text-emerald-800 dark:text-emerald-300">
-                <span className="truncate">{fileName}</span>
-                <span className="font-bold">PDF ফাইল</span>
+                <div className="min-w-0 flex-1 mr-2">
+                  <span className="font-semibold block truncate">{fileName}</span>
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400">{fileSizeStr}</span>
+                </div>
+                <label className="cursor-pointer px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold shrink-0">
+                  <span>ফাইল বদলান</span>
+                  <input
+                    type="file"
+                    accept=".pdf,application/pdf"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                </label>
               </div>
 
               <div className="pt-2 flex items-center justify-end space-x-2">

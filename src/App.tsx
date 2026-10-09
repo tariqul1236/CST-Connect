@@ -1,56 +1,54 @@
 import React, { useState, useEffect } from 'react';
 import { TopBar } from './components/TopBar';
-import { BottomNavBar, TabType } from './components/BottomNavBar';
 import { HomeTab } from './components/HomeTab';
 import { NotesTab } from './components/NotesTab';
 import { AssignmentsTab } from './components/AssignmentsTab';
-import { ProfileTab } from './components/ProfileTab';
 
 // Modals
 import { RoutineModal } from './components/RoutineModal';
 import { NoticeModal } from './components/NoticeModal';
 import { AttendanceModal } from './components/AttendanceModal';
 import { CgpaCalculatorModal } from './components/CgpaCalculatorModal';
-import { BatchChatModal } from './components/BatchChatModal';
 import { QuizModal } from './components/QuizModal';
-import { AiAssistantModal } from './components/AiAssistantModal';
 import { FlutterProjectModal } from './components/FlutterProjectModal';
+import { ApkDownloadModal } from './components/ApkDownloadModal';
 
-// Initial Mock Datasets
+// Firebase Auth Context (kept intact for backend, but UI disabled)
+import { AuthProvider } from './context/AuthContext';
+
+// Initial Datasets
 import {
-  initialStudentProfile,
   initialRoutine,
   initialNotices,
   initialNotes,
   initialAssignments,
   initialAttendance,
-  initialChatMessages,
   initialQuizzes,
   initialSettings,
 } from './data/initialData';
+import { getBengaliDayName, WEEKDAYS_WITH_CLASSES } from './data/classRoutineData';
 
 import { 
+  StudentProfile,
   NoteItem, 
   Assignment, 
-  ChatMessage, 
-  AppSettings,
-  Notice 
+  AppSettings
 } from './types';
 
-import { Bell, Check, X } from 'lucide-react';
+import { Bell, X } from 'lucide-react';
 
-export default function App() {
-  // Navigation
-  const [currentTab, setCurrentTab] = useState<TabType>('home');
+export type DashboardTab = 'home' | 'notes' | 'assignments';
+
+function AppContent() {
+  // Navigation Tab (Default: direct home dashboard)
+  const [currentTab, setCurrentTab] = useState<DashboardTab>('home');
 
   // App Data State
-  const [student, setStudent] = useState(initialStudentProfile);
   const [routine, setRoutine] = useState(initialRoutine);
   const [notices, setNotices] = useState(initialNotices);
   const [notes, setNotes] = useState(initialNotes);
   const [assignments, setAssignments] = useState(initialAssignments);
   const [attendance, setAttendance] = useState(initialAttendance);
-  const [chatMessages, setChatMessages] = useState(initialChatMessages);
   const [quizzes, setQuizzes] = useState(initialQuizzes);
   const [settings, setSettings] = useState<AppSettings>(initialSettings);
 
@@ -59,15 +57,9 @@ export default function App() {
   const [isNoticeOpen, setIsNoticeOpen] = useState(false);
   const [isAttendanceOpen, setIsAttendanceOpen] = useState(false);
   const [isCgpaOpen, setIsCgpaOpen] = useState(false);
-  const [isBatchChatOpen, setIsBatchChatOpen] = useState(false);
   const [isQuizOpen, setIsQuizOpen] = useState(false);
-  const [isAiAssistantOpen, setIsAiAssistantOpen] = useState(false);
   const [isFlutterCodeOpen, setIsFlutterCodeOpen] = useState(false);
-
-  // AI Assistant Parameters
-  const [aiAssistantTab, setAiAssistantTab] = useState<'code' | 'summary' | 'viva'>('code');
-  const [aiSummaryTitle, setAiSummaryTitle] = useState('');
-  const [aiSummaryContent, setAiSummaryContent] = useState('');
+  const [isApkModalOpen, setIsApkModalOpen] = useState(false);
 
   // Push Notification Simulation Banner
   const [activePushNotification, setActivePushNotification] = useState<{
@@ -151,25 +143,35 @@ export default function App() {
     );
   };
 
-  const handleSendMessage = (msg: ChatMessage) => {
-    setChatMessages((prev) => [...prev, msg]);
+  // Academic Student Profile with strictly zero hardcoded demo personal data
+  const academicStudentProfile: StudentProfile = {
+    id: 'cst-student',
+    name: 'CST শিক্ষার্থী',
+    studentId: '—',
+    registrationNo: '—',
+    semester: '৩য় সেমিস্টার',
+    shift: '২য় শিফট',
+    group: 'ক',
+    department: 'কম্পিউটার (CST)',
+    institute: 'নরসিংদী সরকারি পলিটেকনিক ইনস্টিটিউট',
+    session: '২০২৪-২৫',
+    email: '',
+    phone: '—',
+    avatarUrl:
+      'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="%23ecfdf5"/><path d="M50 22a18 18 0 1 0 0 36 18 18 0 0 0 0-36zm0 43c-18.2 0-33 11.2-33 25 0 2.2 1.8 4 4 4h58c2.2 0 4-1.8 4-4 0-13.8-14.8-25-33-25z" fill="%23059669"/></svg>',
+    bloodGroup: '—',
   };
 
-  const handleOpenAiSummaryForNote = (title: string, content: string) => {
-    setAiSummaryTitle(title);
-    setAiSummaryContent(content);
-    setAiAssistantTab('summary');
-    setIsAiAssistantOpen(true);
-  };
-
-  // Today routine (e.g. Sunday/রবিবার classes)
-  const todayRoutine = routine.filter((r) => r.day === 'রবিবার');
+  // Today routine calculation (Sunday to Thursday: today; Friday/Saturday: Sunday preview)
+  const todayDayName = getBengaliDayName();
+  const targetDayForHome = WEEKDAYS_WITH_CLASSES.includes(todayDayName) ? todayDayName : 'রবিবার';
+  const todayRoutine = routine.filter((r) => r.day === targetDayForHome);
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 flex flex-col justify-between transition-colors duration-200">
+    <div className="w-full min-h-screen bg-slate-50 dark:bg-slate-900 sm:bg-slate-100 sm:dark:bg-slate-950 flex flex-col justify-between overflow-x-hidden transition-colors duration-200">
       {/* Push Notification Simulation Floating Banner */}
       {activePushNotification && (
-        <div className="fixed top-14 left-4 right-4 z-50 max-w-md mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-emerald-500 p-3.5 flex items-start space-x-3 animate-slideDown">
+        <div className="fixed top-3 sm:top-14 left-3 right-3 sm:left-4 sm:right-4 z-50 max-w-md mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-emerald-500 p-3 sm:p-3.5 flex items-start space-x-3 animate-slideDown">
           <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
             <Bell className="w-4 h-4 animate-bounce" />
           </div>
@@ -196,11 +198,11 @@ export default function App() {
         </div>
       )}
 
-      {/* Main Container constrained to Mobile/Tablet Android Frame */}
-      <div className="w-full max-w-md mx-auto bg-slate-50 dark:bg-slate-900 min-h-screen flex flex-col shadow-2xl relative border-x border-slate-200/80 dark:border-slate-800">
+      {/* Main Container constrained to Mobile/Tablet Frame */}
+      <div className="w-full max-w-full sm:max-w-md mx-auto bg-slate-50 dark:bg-slate-900 min-h-screen flex flex-col shadow-none sm:shadow-2xl relative border-x-0 sm:border-x border-slate-200/80 dark:border-slate-800 overflow-x-hidden">
         {/* Top App Bar */}
         <TopBar
-          student={student}
+          student={academicStudentProfile}
           darkMode={settings.darkMode}
           onToggleDarkMode={() =>
             setSettings((prev) => ({ ...prev, darkMode: !prev.darkMode }))
@@ -210,14 +212,15 @@ export default function App() {
             setUnreadCount(0);
           }}
           onOpenFlutterCode={() => setIsFlutterCodeOpen(true)}
+          onOpenApkModal={() => setIsApkModalOpen(true)}
           unreadCount={unreadCount}
         />
 
-        {/* Dynamic Tab Body */}
-        <main className="flex-1 px-4 pt-4 overflow-x-hidden">
+        {/* Dynamic Tab Body (Direct Dashboard) */}
+        <main className="flex-1 w-full max-w-full px-3.5 sm:px-4 pt-3.5 sm:pt-4 pb-6 overflow-x-hidden">
           {currentTab === 'home' && (
             <HomeTab
-              student={student}
+              student={academicStudentProfile}
               todayRoutine={todayRoutine}
               notices={notices}
               assignments={assignments}
@@ -226,13 +229,9 @@ export default function App() {
               onOpenNotices={() => setIsNoticeOpen(true)}
               onOpenAttendance={() => setIsAttendanceOpen(true)}
               onOpenCgpa={() => setIsCgpaOpen(true)}
-              onOpenBatchChat={() => setIsBatchChatOpen(true)}
               onOpenQuiz={() => setIsQuizOpen(true)}
-              onOpenAiAssistant={() => {
-                setAiAssistantTab('code');
-                setIsAiAssistantOpen(true);
-              }}
               onOpenFlutterCode={() => setIsFlutterCodeOpen(true)}
+              onOpenApkModal={() => setIsApkModalOpen(true)}
               onNavigateToTab={(tab) => setCurrentTab(tab)}
             />
           )}
@@ -240,8 +239,9 @@ export default function App() {
           {currentTab === 'notes' && (
             <NotesTab
               notes={notes}
+              currentUserName={academicStudentProfile.name}
               onUploadNote={handleUploadNote}
-              onOpenAiSummary={handleOpenAiSummaryForNote}
+              onBackToDashboard={() => setCurrentTab('home')}
             />
           )}
 
@@ -256,34 +256,20 @@ export default function App() {
                   `জমা দিতে আর মাত্র ${days} দিন বাকি!`
                 )
               }
-            />
-          )}
-
-          {currentTab === 'profile' && (
-            <ProfileTab
-              student={student}
-              settings={settings}
-              onUpdateSettings={(newSettings) => setSettings(newSettings)}
-              onOpenFlutterCode={() => setIsFlutterCodeOpen(true)}
+              onBackToDashboard={() => setCurrentTab('home')}
             />
           )}
         </main>
-
-        {/* Bottom Navigation */}
-        <BottomNavBar
-          currentTab={currentTab}
-          onSelectTab={(tab) => setCurrentTab(tab)}
-          assignmentCount={assignments.filter((a) => a.status === 'চলমান').length}
-        />
       </div>
 
-      {/* Feature Modals */}
+      {/* Feature Modals (Educational & Routine tools) */}
       <RoutineModal
         isOpen={isRoutineOpen}
         onClose={() => setIsRoutineOpen(false)}
         routine={routine}
-        semester={student.semester}
-        shift={student.shift}
+        semester={academicStudentProfile.semester}
+        shift={academicStudentProfile.shift}
+        onTriggerNotification={(title, msg) => triggerPushNotification(title, msg)}
       />
 
       <NoticeModal
@@ -307,32 +293,29 @@ export default function App() {
         onClose={() => setIsCgpaOpen(false)}
       />
 
-      <BatchChatModal
-        isOpen={isBatchChatOpen}
-        onClose={() => setIsBatchChatOpen(false)}
-        messages={chatMessages}
-        student={student}
-        onSendMessage={handleSendMessage}
-      />
-
       <QuizModal
         isOpen={isQuizOpen}
         onClose={() => setIsQuizOpen(false)}
         quizzes={quizzes}
       />
 
-      <AiAssistantModal
-        isOpen={isAiAssistantOpen}
-        onClose={() => setIsAiAssistantOpen(false)}
-        initialTab={aiAssistantTab}
-        initialSummaryTitle={aiSummaryTitle}
-        initialSummaryContent={aiSummaryContent}
-      />
-
       <FlutterProjectModal
         isOpen={isFlutterCodeOpen}
         onClose={() => setIsFlutterCodeOpen(false)}
       />
+
+      <ApkDownloadModal
+        isOpen={isApkModalOpen}
+        onClose={() => setIsApkModalOpen(false)}
+      />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }

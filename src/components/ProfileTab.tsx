@@ -23,12 +23,15 @@ import {
   Droplet
 } from 'lucide-react';
 import { StudentProfile, AppSettings } from '../types';
+import { useAuth } from '../context/AuthContext';
 
 interface ProfileTabProps {
   student: StudentProfile;
   settings: AppSettings;
   onUpdateSettings: (newSettings: AppSettings) => void;
   onOpenFlutterCode: () => void;
+  onOpenApkModal: () => void;
+  onOpenAuthModal?: () => void;
 }
 
 export const ProfileTab: React.FC<ProfileTabProps> = ({
@@ -36,7 +39,10 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
   settings,
   onUpdateSettings,
   onOpenFlutterCode,
+  onOpenApkModal,
+  onOpenAuthModal,
 }) => {
+  const { logout, userProfile, currentUser } = useAuth();
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
@@ -148,10 +154,36 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
         </div>
       </div>
 
+      {/* Android APK & Install Banner */}
+      <div 
+        onClick={onOpenApkModal}
+        className="rounded-2xl p-4 bg-gradient-to-r from-emerald-700 via-teal-700 to-emerald-800 text-white shadow-sm flex items-center justify-between cursor-pointer hover:shadow-md transition-all group border border-emerald-500/40"
+      >
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 rounded-xl bg-white text-emerald-800 flex items-center justify-center shadow-xs">
+            <Smartphone className="w-5 h-5 text-emerald-700 group-hover:scale-110 transition-transform" />
+          </div>
+          <div>
+            <div className="flex items-center space-x-2">
+              <h4 className="text-xs font-bold text-white">
+                Android APK ও মোবাইল ইনস্টলেশন
+              </h4>
+              <span className="bg-emerald-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                APK Ready
+              </span>
+            </div>
+            <p className="text-[11px] text-emerald-100">
+              অফিশিয়াল .APK ফাইল ডাউনলোড ও ডিভাইসে সরাসরি ইনস্টল
+            </p>
+          </div>
+        </div>
+        <ChevronRight className="w-4 h-4 text-white/80" />
+      </div>
+
       {/* Developer / Project Source Code Banner */}
       <div 
         onClick={onOpenFlutterCode}
-        className="rounded-2xl p-4 bg-gradient-to-r from-emerald-800 to-teal-800 text-white shadow-sm flex items-center justify-between cursor-pointer hover:shadow-md transition-all group"
+        className="rounded-2xl p-4 bg-gradient-to-r from-slate-800 to-slate-900 text-white shadow-sm flex items-center justify-between cursor-pointer hover:shadow-md transition-all group border border-slate-700"
       >
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20">
@@ -295,21 +327,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
           <ChevronRight className="w-4 h-4 text-slate-400" />
         </button>
 
-        {/* 7. Logout */}
-        <button
-          onClick={() => {
-            if (confirm('আপনি কি নিশ্চিত যে লগ আউট করতে চান?')) {
-              triggerToast('লগ আউট সম্পন্ন হয়েছে (পুনরায় লগইন করতে পারবেন)');
-            }
-          }}
-          className="w-full flex items-center justify-between py-2.5 text-left text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg px-2 transition-colors"
-        >
-          <div className="flex items-center space-x-2.5">
-            <LogOut className="w-4 h-4" />
-            <span className="text-xs font-bold">লগ আউট</span>
-          </div>
-          <span className="text-[11px]">প্রস্থান</span>
-        </button>
+        {/* 7. Auth disabled */}
       </div>
 
       {/* Password Change Modal */}
