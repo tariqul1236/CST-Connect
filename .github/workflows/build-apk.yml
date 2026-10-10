@@ -17,11 +17,13 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      - name: Set up Java JDK 21
+      - name: Set up Java JDK 17 & 21
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: |
+            17
+            21
           cache: 'gradle'
 
       - name: Set up Node.js 22
@@ -46,12 +48,12 @@ jobs:
           cd android
           ./gradlew assembleRelease --stacktrace --info || {
             echo "::error::Gradle assembleRelease failed!"
-            echo "=== GRADLE FAILURE LOG SUMMARY ==="
+            echo "=== Gradle Error Diagnostic Output ==="
             find app/build/reports -type f 2>/dev/null | head -n 20 || true
             exit 1
           }
 
-      - name: Locate and Rename Compiled APK to CST-Connect.apk
+      - name: Locate and Verify Compiled APK
         run: |
           echo "Locating compiled release APK..."
           if [ -f "android/app/build/outputs/apk/release/app-release.apk" ]; then
@@ -63,12 +65,15 @@ jobs:
           fi
 
           if [ -z "$APK_SRC" ] || [ ! -f "$APK_SRC" ]; then
-            echo "::error::Real compiled release APK not found in build outputs!"
+            echo "::error::Real compiled release APK was not produced by Gradle!"
             exit 1
           fi
 
           echo "Found compiled APK: $APK_SRC"
           ls -lh "$APK_SRC"
+
+          FILE_MIME=$(file -b --mime-type "$APK_SRC" 2>/dev/null || true)
+          echo "Detected APK MIME type: $FILE_MIME"
 
           cp "$APK_SRC" CST-Connect.apk
           echo "Successfully prepared CST-Connect.apk"
@@ -93,6 +98,8 @@ jobs:
 
             - **App Name:** CST Connect
             - **Package ID:** `com.cstconnect.app`
+            - **Version:** `1.0.0`
+            - **Version Code:** `1`
             - **Platform:** Android 6.0+
             - **Architecture:** Universal Android APK
             - **Release Asset:** `CST-Connect.apk`
