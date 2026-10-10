@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   Smartphone,
   Download,
-  AlertCircle
+  AlertCircle,
+  Loader2,
+  CheckCircle2
 } from 'lucide-react';
 import { APK_DOWNLOAD_URL } from '../config/apkConfig';
 
@@ -19,49 +21,58 @@ export const ApkDownloadModal: React.FC<ApkDownloadModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  const [configMessage, setConfigMessage] = useState<string | null>(null);
+  const [isReleaseLive, setIsReleaseLive] = useState<boolean | null>(null);
+  const [checking, setChecking] = useState<boolean>(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    let isMounted = true;
+    setChecking(true);
+    setErrorMessage(null);
+
+    // Verify if GitHub Release asset is published
+    fetch('https://api.github.com/repos/tariqul1236/CST-Connect/releases')
+      .then((res) => {
+        if (!res.ok) throw new Error('No release found');
+        return res.json();
+      })
+      .then((releases) => {
+        if (!isMounted) return;
+        if (Array.isArray(releases) && releases.length > 0) {
+          const hasApkAsset = releases.some((rel: { assets?: Array<{ name: string }> }) =>
+            rel.assets?.some((asset) => asset.name === 'CST-Connect.apk')
+          );
+          setIsReleaseLive(hasApkAsset);
+        } else {
+          setIsReleaseLive(false);
+        }
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setIsReleaseLive(false);
+      })
+      .finally(() => {
+        if (isMounted) setChecking(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const isConfigured = Boolean(
-    APK_DOWNLOAD_URL &&
-    APK_DOWNLOAD_URL.trim() !== '' &&
-    (APK_DOWNLOAD_URL as string) !== 'YOUR_REAL_COMPILED_APK_URL_HERE' &&
-    (APK_DOWNLOAD_URL as string) !== 'YOUR_DIRECT_APK_URL_HERE' &&
-    (APK_DOWNLOAD_URL as string) !== 'YOUR_APK_URL_HERE'
-  );
-
   const handleDownloadClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    // 1. APK_DOWNLOAD_URL empty বা placeholder হলে কোনো ফেক ফাইল ডাউনলোড না করে স্পষ্ট বার্তা দেবে
-    if (!isConfigured) {
+    // Release তৈরি হওয়ার আগে website-এ fake success দেখাবে না।
+    if (isReleaseLive === false) {
       e.preventDefault();
-      setConfigMessage(
-        'APK লিংক এখনও কনফিগার করা হয়নি। GitHub Actions থেকে বিল্ড হওয়া আসল .apk লিংকটি src/config/apkConfig.ts ফাইলে বসান।'
-      );
-      console.warn(
-        '[CST Connect] APK_DOWNLOAD_URL is empty or unconfigured. Please set YOUR_REAL_COMPILED_APK_URL_HERE with your actual direct .apk URL in src/config/apkConfig.ts'
-      );
+      setErrorMessage('APK এখনও প্রকাশ করা হয়নি।');
       return;
     }
 
-    const cleanUrl = APK_DOWNLOAD_URL.trim();
-
-    // 2. Cross-origin URL চেক: cross-origin লিঙ্কের ক্ষেত্রে শুধু HTML download অ্যাট্রিবিউট কাজ নাও করতে পারে
-    const isCrossOrigin =
-      cleanUrl.startsWith('http://') ||
-      cleanUrl.startsWith('https://') ||
-      cleanUrl.startsWith('//');
-
-    if (isCrossOrigin) {
-      // ক্রস-অরিজিন ডিরেক্ট URL-এর জন্য উইন্ডো নেভিগেশন ব্রাউজারে .apk ডাউনলোড শুরু করবে
-      e.preventDefault();
-      try {
-        window.location.href = cleanUrl;
-      } catch (err) {
-        console.warn('[CST Connect] Navigation fallback to APK URL:', err);
-      }
-    }
-    // সেইম-অরিজিন ডিরেক্ট URL (/cst_connect.apk)-এর ক্ষেত্রে <a> ট্যাগের href ও download অ্যাট্রিবিউট স্বাভাবিকভাবেই সরাসরি ডাউনলোড সম্পন্ন করবে
+    setErrorMessage(null);
   };
 
   return (
@@ -84,7 +95,7 @@ export const ApkDownloadModal: React.FC<ApkDownloadModalProps> = ({
           </div>
           <button
             onClick={() => {
-              setConfigMessage(null);
+              setErrorMessage(null);
               onClose();
             }}
             className="p-1.5 rounded-full hover:bg-emerald-700 text-white transition-colors cursor-pointer"
@@ -107,7 +118,7 @@ export const ApkDownloadModal: React.FC<ApkDownloadModalProps> = ({
                   CST Connect Android App
                 </h3>
                 <p className="text-xs text-emerald-800/90 dark:text-emerald-300/90 mt-0.5">
-                  অফিশিয়াল অ্যান্ড্রয়েড অ্যাপ প্যাকেজ (.apk)
+                  Package: com.cstconnect.app
                 </p>
               </div>
             </div>
@@ -118,23 +129,49 @@ export const ApkDownloadModal: React.FC<ApkDownloadModalProps> = ({
             </div>
           </div>
 
-          {/* Inline notification if clicked before URL configuration */}
-          {configMessage && (
+          {/* Release status notification */}
+          {checking ? (
+            <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-2xl text-xs text-slate-600 dark:text-slate-300 flex items-center space-x-2">
+              <Loader2 className="w-4 h-4 animate-spin text-emerald-600 shrink-0" />
+              <span>APK রিলিজ স্ট্যাটাস পরীক্ষা করা হচ্ছে...</span>
+            </div>
+          ) : isReleaseLive === false ? (
             <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/50 rounded-2xl text-xs text-amber-800 dark:text-amber-200 flex items-start space-x-2.5 animate-fadeIn">
               <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="font-medium leading-relaxed">{configMessage}</p>
+                <p className="font-bold">APK এখনও প্রকাশ করা হয়নি।</p>
+                <p className="text-[11px] text-amber-700 dark:text-amber-300/90 mt-0.5 leading-relaxed">
+                  GitHub Actions-এ বিল্ড সম্পন্ন হয়ে v1.0.0 রিলিজ প্রকাশ হওয়া মাত্রই এই বাটন সরাসরি APK ডাউনলোড করবে।
+                </p>
               </div>
+            </div>
+          ) : (
+            <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/50 rounded-2xl text-xs text-emerald-800 dark:text-emerald-200 flex items-center space-x-2 animate-fadeIn">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span className="font-medium">অফিশিয়াল v1.0.0 APK ডাউনলোড প্রস্তুত!</span>
             </div>
           )}
 
-          {/* Prominent Single APK Download Button */}
+          {/* User clicked before release is live */}
+          {errorMessage && (
+            <div className="p-2.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 rounded-xl text-xs text-rose-700 dark:text-rose-300 font-semibold text-center animate-fadeIn">
+              {errorMessage}
+            </div>
+          )}
+
+          {/* Prominent Single APK Download Button - Direct link */}
           <div>
             <a
-              href={isConfigured ? APK_DOWNLOAD_URL.trim() : '#'}
-              download={isConfigured ? 'CST-Connect.apk' : undefined}
+              href={isReleaseLive ? APK_DOWNLOAD_URL : '#'}
+              download="CST-Connect.apk"
+              target={isReleaseLive ? '_blank' : undefined}
+              rel={isReleaseLive ? 'noopener noreferrer' : undefined}
               onClick={handleDownloadClick}
-              className="w-full py-4 px-5 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-bold text-base rounded-2xl flex items-center justify-center space-x-2.5 shadow-lg shadow-emerald-700/25 transition-all cursor-pointer text-center select-none"
+              className={`w-full py-4 px-5 font-bold text-base rounded-2xl flex items-center justify-center space-x-2.5 shadow-lg transition-all text-center select-none ${
+                isReleaseLive === false
+                  ? 'bg-slate-300 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed'
+                  : 'bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white shadow-emerald-700/25 cursor-pointer'
+              }`}
             >
               <Download className="w-5 h-5 shrink-0" />
               <span>📥 APK ডাউনলোড করুন</span>
@@ -147,7 +184,7 @@ export const ApkDownloadModal: React.FC<ApkDownloadModalProps> = ({
           <span className="font-medium text-[11px]">Android 6.0+ সমর্থিত</span>
           <button
             onClick={() => {
-              setConfigMessage(null);
+              setErrorMessage(null);
               onClose();
             }}
             className="px-4 py-1.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold rounded-xl text-xs transition-all cursor-pointer"
